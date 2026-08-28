@@ -14,7 +14,7 @@ const depthOffset = Math.max(depth - 2, 0) * 0.75;
 
 <li class={depth > 2 ? "ms-3" : ""}>
 	<a
-		class={`toc-link block truncate py-1 transition-colors hover:text-accent
+		class={`toc-link relative block py-1 transition-colors hover:text-accent
 			data-[active=true]:font-semibold data-[active=true]:text-accent ${
 				depth <= 2
 					? "text-sm text-zinc-600 dark:text-zinc-400"
@@ -26,7 +26,7 @@ const depthOffset = Math.max(depth - 2, 0) * 0.75;
 		href={`#${slug}`}
 		style={`--depth-offset: ${depthOffset}rem`}
 	>
-		{text}
+		<span class="block truncate">{text}</span>
 	</a>
 
 	{
@@ -41,24 +41,15 @@ const depthOffset = Math.max(depth - 2, 0) * 0.75;
 </li>
 
 <style>
-	.toc-link {
-		position: relative;
-	}
-
 	.toc-link[data-active="true"]::before {
 		content: "";
 		position: absolute;
 
-		/*
-		 * TOC의 기본 border 위에 정확히 겹치도록 이동.
-		 * 하위 heading의 들여쓰기까지 역으로 보정한다.
-		 */
 		left: calc(-1.25rem - var(--depth-offset) - 1px);
+		top: 0.2rem;
+		bottom: 0.2rem;
 
-		top: 0.25rem;
-		bottom: 0.25rem;
 		width: 2px;
-
 		border-radius: 9999px;
 		background: currentColor;
 	}
