@@ -34,6 +34,7 @@ const readingTime: string = remarkPluginFrontmatter.readingTime;
 			{!!headings.length && <TOC headings={headings} />}
 			<div
 				class="prose prose-sm max-w-none lg:w-[760px] prose-headings:font-semibold prose-headings:text-accent-2"
+			>
 				<slot />
 				<WebMentions />
 			</div>
