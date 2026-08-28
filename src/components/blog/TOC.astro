@@ -59,6 +59,9 @@ const toc = generateToc(headings);
 			} => item !== null,
 		);
 
+	let lockedId: string | null = null;
+	let scrollEndTimer: number | undefined;
+
 	function setActive(id: string) {
 		for (const item of items) {
 			item.link.dataset.active = (item.id === id).toString();
@@ -68,15 +71,18 @@ const toc = generateToc(headings);
 	function updateActiveHeading() {
 		if (items.length === 0) return;
 
+		// TOC를 클릭해서 smooth scroll 중일 때는
+		// 클릭한 항목의 highlight를 유지한다.
+		if (lockedId) {
+			setActive(lockedId);
+			return;
+		}
+
 		let currentId = items[0].id;
 
 		for (const item of items) {
 			const top = item.heading.getBoundingClientRect().top;
 
-			/*
-			 * heading이 화면 상단 140px 지점을 지나면
-			 * 해당 section을 현재 section으로 간주한다.
-			 */
 			if (top <= ACTIVE_OFFSET) {
 				currentId = item.id;
 			} else {
@@ -84,7 +90,6 @@ const toc = generateToc(headings);
 			}
 		}
 
-		// 페이지 맨 아래에서는 마지막 section 선택
 		const reachedBottom =
 			window.innerHeight + window.scrollY >=
 			document.documentElement.scrollHeight - 2;
@@ -96,9 +101,20 @@ const toc = generateToc(headings);
 		setActive(currentId);
 	}
 
+	function unlockAfterScroll() {
+		window.clearTimeout(scrollEndTimer);
+
+		scrollEndTimer = window.setTimeout(() => {
+			lockedId = null;
+			updateActiveHeading();
+		}, 120);
+	}
+
 	let ticking = false;
 
 	function onScroll() {
+		unlockAfterScroll();
+
 		if (ticking) return;
 
 		ticking = true;
@@ -111,6 +127,8 @@ const toc = generateToc(headings);
 
 	for (const item of items) {
 		item.link.addEventListener("click", () => {
+			// 클릭 순간 해당 목차를 바로 active 처리
+			lockedId = item.id;
 			setActive(item.id);
 		});
 	}
@@ -122,7 +140,10 @@ const toc = generateToc(headings);
 			window.location.hash.replace(/^#/, ""),
 		);
 
-		if (id) setActive(id);
+		if (id) {
+			lockedId = id;
+			setActive(id);
+		}
 	});
 
 	updateActiveHeading();
