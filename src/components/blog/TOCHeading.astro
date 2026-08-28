@@ -9,21 +9,22 @@ const {
 	heading: { children, depth, slug, text },
 } = Astro.props;
 
-const indent = Math.max(depth - 2, 0) * 0.75;
+const depthOffset = Math.max(depth - 2, 0) * 0.75;
 ---
 
 <li class={depth > 2 ? "ms-3" : ""}>
 	<a
-		class={`toc-link block truncate py-1 transition-colors hover:text-accent data-[active=true]:font-semibold data-[active=true]:text-accent ${
-			depth <= 2
-				? "text-sm text-zinc-600 dark:text-zinc-400"
-				: "text-xs text-zinc-500 dark:text-zinc-500"
-		}`}
+		class={`toc-link block truncate py-1 transition-colors hover:text-accent
+			data-[active=true]:font-semibold data-[active=true]:text-accent ${
+				depth <= 2
+					? "text-sm text-zinc-600 dark:text-zinc-400"
+					: "text-xs text-zinc-500 dark:text-zinc-500"
+			}`}
 		data-active="false"
 		data-heading-id={slug}
-		data-toc-link="true"
+		data-toc-link
 		href={`#${slug}`}
-		style={`--toc-indent: ${indent}rem`}
+		style={`--depth-offset: ${depthOffset}rem`}
 	>
 		{text}
 	</a>
@@ -49,17 +50,16 @@ const indent = Math.max(depth - 2, 0) * 0.75;
 		position: absolute;
 
 		/*
-		 * nav의 pl-5(1.25rem) + heading 들여쓰기만큼
-		 * 반대로 이동해서 바깥 세로선 위에 active bar를 그림
+		 * TOC의 기본 border 위에 정확히 겹치도록 이동.
+		 * 하위 heading의 들여쓰기까지 역으로 보정한다.
 		 */
-		left: calc(-1.25rem - var(--toc-indent) - 1px);
+		left: calc(-1.25rem - var(--depth-offset) - 1px);
 
 		top: 0.25rem;
 		bottom: 0.25rem;
-
 		width: 2px;
-		border-radius: 9999px;
 
+		border-radius: 9999px;
 		background: currentColor;
 	}
 </style>
