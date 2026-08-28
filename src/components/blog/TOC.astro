@@ -12,8 +12,12 @@ const { headings } = Astro.props;
 const toc = generateToc(headings);
 ---
 
-<aside class="hidden lg:sticky lg:top-12 lg:order-2 lg:block lg:w-[220px] lg:shrink-0">
-	<nav class="border-l border-zinc-200 pl-5 dark:border-zinc-700">
+<aside
+	class="hidden lg:sticky lg:top-12 lg:order-2 lg:block lg:w-[200px] lg:shrink-0"
+>
+	<nav
+		class="max-h-[calc(100vh-6rem)] overflow-y-auto border-l border-zinc-200 pl-5 pr-2 dark:border-zinc-700"
+	>
 		<h2 class="mb-4 text-sm font-semibold text-zinc-700 dark:text-zinc-200">
 			Contents
 		</h2>
@@ -23,3 +27,89 @@ const toc = generateToc(headings);
 		</ol>
 	</nav>
 </aside>
+
+<script>
+	const links = Array.from(
+		document.querySelectorAll<HTMLAnchorElement>('a[data-toc-link="true"]'),
+	);
+
+	const items: Array<{
+		link: HTMLAnchorElement;
+		heading: HTMLElement;
+		id: string;
+	}> = [];
+
+	for (const link of links) {
+		const id = link.dataset.headingId;
+
+		if (!id) continue;
+
+		const heading = document.getElementById(id);
+
+		if (heading) {
+			items.push({
+				link,
+				heading,
+				id,
+			});
+		}
+	}
+
+	function setActive(id: string) {
+		for (const item of items) {
+			item.link.dataset.active = (item.id === id).toString();
+		}
+	}
+
+	if (items.length > 0) {
+		// 처음 페이지를 열었을 때
+		const hashId = decodeURIComponent(
+			window.location.hash.replace(/^#/, ""),
+		);
+
+		if (hashId && items.some((item) => item.id === hashId)) {
+			setActive(hashId);
+		} else {
+			setActive(items[0].id);
+		}
+
+		// TOC를 직접 클릭했을 때 즉시 강조
+		for (const item of items) {
+			item.link.addEventListener("click", () => {
+				setActive(item.id);
+			});
+		}
+
+		// 스크롤할 때 현재 보고 있는 heading 감지
+		const observer = new IntersectionObserver(
+			(entries) => {
+				const visibleHeadings = entries
+					.filter((entry) => entry.isIntersecting)
+					.sort(
+						(a, b) =>
+							a.boundingClientRect.top -
+							b.boundingClientRect.top,
+					);
+
+				if (visibleHeadings.length > 0) {
+					const activeHeading =
+						visibleHeadings[0].target as HTMLElement;
+
+					setActive(activeHeading.id);
+				}
+			},
+			{
+				/*
+				 * 화면 상단 약 15~25% 지점을
+				 * "현재 읽는 heading" 판정 영역으로 사용
+				 */
+				rootMargin: "-15% 0px -75% 0px",
+				threshold: 0,
+			},
+		);
+
+		for (const item of items) {
+			observer.observe(item.heading);
+		}
+	}
+</script>

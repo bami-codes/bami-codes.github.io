@@ -8,16 +8,22 @@ interface Props {
 const {
 	heading: { children, depth, slug, text },
 } = Astro.props;
+
+const indent = Math.max(depth - 2, 0) * 0.75;
 ---
 
 <li class={depth > 2 ? "ms-3" : ""}>
 	<a
-		class={`block truncate py-1 transition-colors hover:text-accent ${
+		class={`toc-link block truncate py-1 transition-colors hover:text-accent data-[active=true]:font-semibold data-[active=true]:text-accent ${
 			depth <= 2
 				? "text-sm text-zinc-600 dark:text-zinc-400"
 				: "text-xs text-zinc-500 dark:text-zinc-500"
 		}`}
+		data-active="false"
+		data-heading-id={slug}
+		data-toc-link="true"
 		href={`#${slug}`}
+		style={`--toc-indent: ${indent}rem`}
 	>
 		{text}
 	</a>
@@ -32,3 +38,28 @@ const {
 		)
 	}
 </li>
+
+<style>
+	.toc-link {
+		position: relative;
+	}
+
+	.toc-link[data-active="true"]::before {
+		content: "";
+		position: absolute;
+
+		/*
+		 * nav의 pl-5(1.25rem) + heading 들여쓰기만큼
+		 * 반대로 이동해서 바깥 세로선 위에 active bar를 그림
+		 */
+		left: calc(-1.25rem - var(--toc-indent) - 1px);
+
+		top: 0.25rem;
+		bottom: 0.25rem;
+
+		width: 2px;
+		border-radius: 9999px;
+
+		background: currentColor;
+	}
+</style>
